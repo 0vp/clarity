@@ -1,3 +1,12 @@
+/* Color Palette from Flower Field Image:
+   Slate Blue (Primary Accent): #8B9DAF (sampled from sky, brightened for visibility)
+   Peach: #E8A899
+   Warm Beige: #F9CFB0
+   Muted Sky: #788F9D
+   Blue Gray: #96A2AA
+   Light Blue: #AEBECD
+*/
+
 .main {
   min-height: 100vh;
   position: relative;
@@ -57,10 +66,27 @@
   font-weight: 500;
   transition: all 0.2s ease;
   text-decoration: none;
+  position: relative;
+  padding-bottom: 4px;
+}
+
+.nav a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #8B9DAF, #B4CDDE);
+  transition: width 0.3s ease;
 }
 
 .nav a:hover {
   color: rgba(255, 255, 255, 1);
+}
+
+.nav a:hover::after {
+  width: 100%;
 }
 
 .headerActions {
@@ -120,41 +146,43 @@
 
 .badge {
   display: inline-block;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.4rem 0.8rem;
+  background: rgba(139, 157, 175, 0.2);
+  border: 1px solid rgba(139, 157, 175, 0.5);
   border-radius: 20px;
-  color: #ffffff;
-  font-size: 0.875rem;
+  color: rgba(180, 195, 210, 1);
+  font-size: 0.75rem;
   font-weight: 500;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   backdrop-filter: blur(10px);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .headline {
-  font-size: 4.5rem;
-  font-weight: 800;
+  font-size: 3.15rem;
+  font-weight: 600;
   line-height: 1.1;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   color: #ffffff;
   letter-spacing: -0.04em;
   text-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .headlineItalic {
+  font-family: var(--font-noto-serif), serif;
   font-style: italic;
-  font-size: 4.7rem;
+  font-size: 3.5rem;
   display: inline-block;
-  color: #ffffff;
+  color: #8B9DAF;
+  font-weight: 600;
 }
 
 .description {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   line-height: 1.7;
   color: rgba(255, 255, 255, 0.95);
-  margin-bottom: 2.5rem;
-  max-width: 650px;
+  margin-bottom: 2rem;
+  max-width: 550px;
   margin-left: auto;
   margin-right: auto;
   font-weight: 400;
@@ -170,11 +198,11 @@
 }
 
 .primaryButton {
-  padding: 1.1rem 3rem;
+  padding: 0.9rem 2.5rem;
   background: rgba(255, 255, 255, 0.95);
   color: rgba(0, 0, 0, 0.85);
   border-radius: 12px;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 600;
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 1);
@@ -204,8 +232,151 @@
 .primaryButton:hover {
   transform: translateY(-2px);
   background: rgba(255, 255, 255, 1);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 30px rgba(139, 157, 175, 0.4), 0 4px 20px rgba(0, 0, 0, 0.25);
   border-color: rgba(255, 255, 255, 1);
+}
+
+/* Value Propositions Section */
+.valuePropsSection {
+  position: relative;
+  z-index: 5;
+  padding: 6rem 4rem;
+  text-align: center;
+}
+
+.valueSectionTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4rem;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.valueCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.valueCard {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.valueCard:hover {
+  transform: translateY(-8px);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.valueCardCoral {
+  border-top: 3px solid #8B9DAF;
+}
+
+.valueCardCoral:hover {
+  box-shadow: 0 8px 32px rgba(139, 157, 175, 0.4);
+}
+
+.valueCardBlue {
+  border-top: 3px solid #788F9D;
+}
+
+.valueCardBlue:hover {
+  box-shadow: 0 8px 32px rgba(120, 143, 157, 0.3);
+}
+
+.valueCardPeach {
+  border-top: 3px solid #E8A899;
+}
+
+.valueCardPeach:hover {
+  box-shadow: 0 8px 32px rgba(232, 168, 153, 0.3);
+}
+
+.valueCardIcon {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  line-height: 1;
+}
+
+.valueCardTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.valueCardSubtitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.valueCardDescription {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Quote/Stat Section */
+.quoteSection {
+  position: relative;
+  z-index: 5;
+  padding: 6rem 4rem;
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 157, 175, 0.12) 0%,
+    rgba(120, 143, 157, 0.08) 50%,
+    rgba(232, 168, 153, 0.08) 100%
+  );
+  backdrop-filter: blur(12px);
+}
+
+.quote {
+  font-size: 2rem;
+  font-weight: 400;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.95);
+  max-width: 800px;
+  margin: 0 auto 3rem;
+  line-height: 1.5;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.statContainer {
+  margin-top: 3rem;
+}
+
+.statNumber {
+  font-size: 4rem;
+  font-weight: 800;
+  color: #8B9DAF;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 4px 16px rgba(139, 157, 175, 0.5);
+}
+
+.statLabel {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.statSubtext {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .trustedBy {
@@ -287,11 +458,11 @@
   }
 
   .headline {
-    font-size: 2.75rem;
+    font-size: 2.5rem;
   }
 
   .headlineItalic {
-    font-size: 3rem;
+    font-size: 2.75rem;
   }
 
   .description {
@@ -306,6 +477,40 @@
 
   .primaryButton {
     width: 100%;
+  }
+
+  .valuePropsSection {
+    padding: 4rem 2rem;
+  }
+
+  .valueSectionTitle {
+    font-size: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .valueCards {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .valueCard {
+    padding: 2rem 1.5rem;
+  }
+
+  .quoteSection {
+    padding: 4rem 2rem;
+  }
+
+  .quote {
+    font-size: 1.5rem;
+  }
+
+  .statNumber {
+    font-size: 3rem;
+  }
+
+  .statLabel {
+    font-size: 1.1rem;
   }
 
   .trustedBy {

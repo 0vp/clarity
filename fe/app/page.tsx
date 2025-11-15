@@ -41,17 +41,18 @@ export default function Home() {
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
-          <div className={styles.badge}>New: Enhanced Workflow Automation</div>
+          <div className={styles.badge}>#1 Brand Intelligence Platform</div>
           <h1 className={styles.headline}>
-            Find Your Calm in the{' '}
-            <span className={styles.headlineItalic}>Complexity</span>
+            {/* add a new line after Becomes but before Brand */}
+            Where Visibility Becomes <br /> Brand{' '}
+            <span className={styles.headlineItalic}>Intelligence</span>
           </h1>
           <p className={styles.description}>
-            Our platform handles the intricate data and workflows so you can stop firefighting and start focusing on what matters.
+            <em>There&apos;s endless noise about your brand, but no clear signal of what matters.</em>
           </p>
           <div className={styles.ctaButtons}>
             <a href="#brands" className={styles.primaryButton}>
-              Manage Your Brands →
+              filter the noise →
             </a>
           </div>
         </div>
@@ -61,12 +62,7 @@ export default function Home() {
       <section className={styles.trustedBy}>
         <p className={styles.trustedByText}>Trusted By Teams At</p>
         <div className={styles.logos}>
-          <div className={styles.logoItem}>Loom</div>
-          <div className={styles.logoItem}>Segment</div>
-          <div className={styles.logoItem}>Notion</div>
-          <div className={styles.logoItem}>Slack</div>
-          <div className={styles.logoItem}>Discord</div>
-          <div className={styles.logoItem}>Vercel</div>
+          <div className={styles.logoItem}>None</div>
         </div>
       </section>
     </main>

@@ -1,9 +1,17 @@
 import type { Metadata } from 'next'
+import { Noto_Serif_Display } from 'next/font/google'
 import './globals.css'
 
+const notoSerif = Noto_Serif_Display({
+  subsets: ['latin'],
+  style: ['italic'],
+  weight: ['400', '600'],
+  variable: '--font-noto-serif',
+})
+
 export const metadata: Metadata = {
-  title: 'Claro - Find Your Calm in the Complexity',
-  description: 'Our platform handles the intricate data and workflows so you can stop firefighting and start focusing on what matters.',
+  title: 'Clarity - Brand Reputation Tracker',
+  description: 'Where visibility becomes brand intelligence. Transform scattered mentions into actionable reputation insights.',
 }
 
 export default function RootLayout({
@@ -12,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={notoSerif.variable}>
       <body>{children}</body>
     </html>
   )
