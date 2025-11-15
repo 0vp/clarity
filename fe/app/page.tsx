@@ -52,7 +52,7 @@ export default function Home() {
           </p>
           <div className={styles.ctaButtons}>
             <a href="#brands" className={styles.primaryButton}>
-              filter the noise →
+              Filter Out the Noise →
             </a>
           </div>
         </div>
