@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import styles from './page.module.css'
 
 export default function Home() {
@@ -34,7 +35,7 @@ export default function Home() {
           <a href="#resources">Resources</a>
         </nav>
         <div className={styles.headerActions}>
-          <a href="#dashboard" className={styles.dashboardButton}>Dashboard</a>
+          <Link href="/dashboard" className={styles.dashboardButton}>Dashboard</Link>
         </div>
       </header>
 
@@ -51,9 +52,9 @@ export default function Home() {
             <em>There&apos;s endless noise about your brand, <br /> but no clear signal of what matters.</em>
           </p>
           <div className={styles.ctaButtons}>
-            <a href="#brands" className={styles.primaryButton}>
+            <Link href="/dashboard" className={styles.primaryButton}>
               Filter Out the Noise →
-            </a>
+            </Link>
           </div>
         </div>
       </section>
