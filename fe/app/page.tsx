@@ -48,7 +48,7 @@ export default function Home() {
             <span className={styles.headlineItalic}>Intelligence</span>
           </h1>
           <p className={styles.description}>
-            <em>There&apos;s endless noise about your brand, but no clear signal of what matters.</em>
+            <em>There&apos;s endless noise about your brand, <br /> but no clear signal of what matters.</em>
           </p>
           <div className={styles.ctaButtons}>
             <a href="#brands" className={styles.primaryButton}>
