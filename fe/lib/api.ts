@@ -126,11 +126,18 @@ export async function fetchBrandDataRange(
 
 export async function fetchBrandLatestData(
   brandName: string,
-  limit: number = 10
+  limit: number = 10,
+  offset: number = 0
 ): Promise<BrandData[]> {
   try {
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    if (offset > 0) {
+      params.append('offset', offset.toString());
+    }
+    
     const response = await fetch(
-      `${API_BASE_URL}/brands/${encodeURIComponent(brandName)}/latest?limit=${limit}`
+      `${API_BASE_URL}/brands/${encodeURIComponent(brandName)}/latest?${params}`
     );
     
     if (!response.ok) {

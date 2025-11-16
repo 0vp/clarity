@@ -41,6 +41,10 @@ export default function BrandPage() {
   const [stats, setStats] = useState<BrandStats | null>(null)
   const [historicalData, setHistoricalData] = useState<BrandData[]>([])
   const [recentMentions, setRecentMentions] = useState<BrandData[]>([])
+  const [allMentions, setAllMentions] = useState<BrandData[]>([])
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [mentionsOffset, setMentionsOffset] = useState(0)
+  const [hasMoreMentions, setHasMoreMentions] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -50,6 +54,8 @@ export default function BrandPage() {
       try {
         setLoading(true)
         setError(null)
+        setMentionsOffset(0)
+        setAllMentions([])
 
         const days = timeRange === 'all' ? 365 : parseInt(timeRange)
         
@@ -61,7 +67,14 @@ export default function BrandPage() {
 
         setStats(statsData)
         setHistoricalData(historicalDataResult)
-        setRecentMentions(recentData)
+        
+        const sortedMentions = [...recentData].sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        )
+        setAllMentions(sortedMentions)
+        setRecentMentions(sortedMentions)
+        setMentionsOffset(10)
+        setHasMoreMentions(recentData.length === 10)
       } catch (err) {
         console.error('Error loading brand data:', err)
         setError(err instanceof Error ? err.message : 'Failed to load data')
@@ -76,6 +89,30 @@ export default function BrandPage() {
   const timeSeriesData = historicalData.length > 0 ? processTimeSeriesData(historicalData) : []
   const sentimentDistribution = historicalData.length > 0 ? calculateSentimentDistribution(historicalData) : { positive: 0, neutral: 0, negative: 0 }
   const sourceBreakdown = stats ? processSourceBreakdown(stats) : []
+
+  const handleLoadMore = async () => {
+    try {
+      setLoadingMore(true)
+      const moreData = await fetchBrandLatestData(brandName, 10, mentionsOffset)
+      
+      if (moreData.length > 0) {
+        const combined = [...allMentions, ...moreData]
+        const sortedMentions = combined.sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        )
+        setAllMentions(sortedMentions)
+        setRecentMentions(sortedMentions)
+        setMentionsOffset(mentionsOffset + 10)
+        setHasMoreMentions(moreData.length === 10)
+      } else {
+        setHasMoreMentions(false)
+      }
+    } catch (err) {
+      console.error('Error loading more mentions:', err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -189,7 +226,12 @@ export default function BrandPage() {
             </div>
 
             {/* Recent Mentions */}
-            <RecentMentions data={recentMentions} />
+            <RecentMentions 
+              data={recentMentions} 
+              hasMore={hasMoreMentions}
+              isLoading={loadingMore}
+              onLoadMore={handleLoadMore}
+            />
           </div>
         )}
       </main>

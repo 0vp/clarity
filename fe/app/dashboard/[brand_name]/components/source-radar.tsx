@@ -1,6 +1,6 @@
 'use client'
 
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart, PolarRadiusAxis } from 'recharts'
+import { PolarAngleAxis, PolarGrid, Radar, RadarChart, PolarRadiusAxis, Legend } from 'recharts'
 import {
   Card,
   CardContent,
@@ -20,18 +20,31 @@ interface SourceRadarProps {
   data: SourceChartData[]
 }
 
-const chartConfig = {
-  avgScore: {
-    label: 'Average Score',
-    color: 'hsl(var(--chart-2))',
-  },
-} satisfies ChartConfig
+const sourceColors = {
+  trustpilot: '#3B82F6',
+  yelp: '#EC4899',
+  google_reviews: '#F59E0B',
+  news: '#10B981',
+  blog: '#8B5CF6',
+  forum: '#EF4444',
+  website: '#06B6D4',
+  other: '#6366F1'
+}
 
 export function SourceRadar({ data }: SourceRadarProps) {
   const radarData = data.map(item => ({
     source: item.source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
     avgScore: item.avgScore,
+    fill: sourceColors[item.source as keyof typeof sourceColors] || '#6366F1',
   }))
+
+  const chartConfig = radarData.reduce((acc, item) => {
+    acc[item.source] = {
+      label: item.source,
+      color: item.fill,
+    }
+    return acc
+  }, {} as ChartConfig)
 
   return (
     <Card>
@@ -52,13 +65,18 @@ export function SourceRadar({ data }: SourceRadarProps) {
               cursor={false}
               content={<ChartTooltipContent indicator="line" />}
             />
-            <Radar
-              dataKey="avgScore"
-              fill="var(--color-avgScore)"
-              fillOpacity={0.6}
-              stroke="var(--color-avgScore)"
-              strokeWidth={2}
-            />
+            {data.map((item, index) => (
+              <Radar
+                key={`radar-${index}`}
+                dataKey="avgScore"
+                stroke={sourceColors[item.source as keyof typeof sourceColors] || '#6366F1'}
+                fill={sourceColors[item.source as keyof typeof sourceColors] || '#6366F1'}
+                fillOpacity={0.25}
+                strokeWidth={2}
+                isAnimationActive={true}
+              />
+            ))}
+            <Legend verticalAlign="bottom" height={36} />
           </RadarChart>
         </ChartContainer>
       </CardContent>

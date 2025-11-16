@@ -86,18 +86,20 @@ def get_brand_latest_data(brand_name: str):
     
     Query params:
         - limit: Max number of results (default: 10)
+        - offset: Number of results to skip (default: 0)
     
     Returns:
         JSON response with latest reputation data
     """
     try:
         limit = request.args.get('limit', default=10, type=int)
-        data = get_latest_data(brand_name, limit)
+        offset = request.args.get('offset', default=0, type=int)
+        data = get_latest_data(brand_name, limit + offset)
         
         return jsonify({
             "brand": brand_name,
-            "data": data,
-            "count": len(data)
+            "data": data[offset:offset + limit],
+            "count": len(data[offset:offset + limit])
         }), 200
     
     except Exception as e:

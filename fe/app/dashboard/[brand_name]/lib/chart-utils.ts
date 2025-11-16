@@ -62,21 +62,21 @@ export function calculateSentimentDistribution(data: BrandData[]): SentimentDist
 // Process source breakdown for pie/bar charts
 export function processSourceBreakdown(stats: BrandStats): SourceChartData[] {
   const colors = {
-    trustpilot: 'hsl(var(--chart-1))',
-    yelp: 'hsl(var(--chart-2))',
-    google_reviews: 'hsl(var(--chart-3))',
-    news: 'hsl(var(--chart-4))',
-    blog: 'hsl(var(--chart-5))',
-    forum: 'hsl(var(--chart-1))',
-    website: 'hsl(var(--chart-2))',
-    other: 'hsl(var(--chart-3))'
+    trustpilot: '#3B82F6',
+    yelp: '#EC4899',
+    google_reviews: '#F59E0B',
+    news: '#10B981',
+    blog: '#8B5CF6',
+    forum: '#EF4444',
+    website: '#06B6D4',
+    other: '#6366F1'
   }
 
   return Object.entries(stats.by_source || {}).map(([source, data]) => ({
     source,
     count: data.count,
     avgScore: data.avg_score,
-    fill: colors[source as keyof typeof colors] || 'hsl(var(--chart-1))'
+    fill: colors[source as keyof typeof colors] || '#6366F1'
   }))
 }
 
