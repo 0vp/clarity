@@ -1,5 +1,6 @@
 import json
 import time
+import re
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from browser import create_task, get_task
@@ -51,78 +52,120 @@ def calculate_reputation_score(text: str, rating: Optional[float] = None) -> flo
     return max(-1.0, min(1.0, final_score))
 
 
+def _normalize_date_format(date_str: str) -> str:
+    """
+    Normalize any date format to MM-DD-YYYY.
+    
+    Args:
+        date_str: Date in any format
+    
+    Returns:
+        Date in MM-DD-YYYY format
+    """
+    # Already in correct format
+    if re.match(r'^\d{2}-\d{2}-\d{4}$', date_str):
+        return date_str
+    
+    # Try common formats
+    formats_to_try = [
+        "%Y-%m-%d",      # 2025-11-15
+        "%m/%d/%Y",      # 11/15/2025
+        "%d/%m/%Y",      # 15/11/2025
+        "%Y/%m/%d",      # 2025/11/15
+        "%m-%d-%Y",      # Already correct
+        "%B %d, %Y",     # November 15, 2025
+        "%b %d, %Y",     # Nov 15, 2025
+        "%Y-%m-%dT%H:%M:%S",  # ISO format with time
+        "%Y-%m-%d %H:%M:%S",   # SQL datetime
+    ]
+    
+    for fmt in formats_to_try:
+        try:
+            dt = datetime.strptime(date_str, fmt)
+            return dt.strftime("%m-%d-%Y")  # Always return MM-DD-YYYY
+        except ValueError:
+            continue
+    
+    # If all else fails, use today
+    print(f"[PARSER] ❌ Could not parse date '{date_str}', using today")
+    return datetime.now().strftime("%m-%d-%Y")
+
+
 def parse_scrape_result(
     raw_result: str,
     source_type: str,
-    source_url: str = ""
+    source_url: str = "",
+    brand_name: str = ""
 ) -> List[ReputationEntry]:
     """
-    Parse browser.cash scraping result into ReputationEntry objects.
+    Parse browser.cash result using LLM post-processing for robust extraction.
     
     Args:
         raw_result: Raw answer from browser.cash
         source_type: Type of source (trustpilot, yelp, etc.)
         source_url: Base URL of the source
+        brand_name: Brand name for context
     
     Returns:
         List of ReputationEntry objects
     """
+    from .llm_processor import process_with_llm
+    
     entries = []
     scraped_at = datetime.now().isoformat()
     
-    try:
-        data = json.loads(raw_result)
-        
-        if not isinstance(data, list):
-            data = [data]
-        
-        for item in data:
-            if isinstance(item, dict):
-                if 'review_text' in item:
-                    text = item.get('review_text', '')
-                    rating = item.get('rating')
-                    
-                    if isinstance(rating, str):
-                        rating = float(rating.split('/')[0]) if '/' in rating else float(rating)
-                    
-                    score = calculate_reputation_score(text, rating)
-                    summary = text[:200] + '...' if len(text) > 200 else text
-                    
-                elif 'title' in item and 'summary' in item:
-                    summary = item.get('summary', '')
-                    text = item.get('title', '') + '. ' + summary
-                    score = calculate_reputation_score(text)
-                    
-                else:
-                    continue
+    print(f"\n[PARSER] Processing {source_type} results for {brand_name}")
+    
+    # Use LLM to process and format the raw data
+    structured_data = process_with_llm(raw_result, source_type, brand_name)
+    
+    if not structured_data:
+        print(f"[PARSER] ⚠️ No data extracted from {source_type}")
+        return []
+    
+    print(f"[PARSER] Processing {len(structured_data)} items from LLM")
+    
+    for idx, item in enumerate(structured_data, 1):
+        try:
+            # LLM provides clean, structured data
+            if source_type in ['trustpilot', 'yelp', 'google_reviews']:
+                summary = item.get('summary', item.get('review_text', '')[:200])
+                reputation_score = item.get('sentiment_score', 0.0)
+                date = item.get('date', datetime.now().strftime("%m-%d-%Y"))
+                url = item.get('url', source_url)
                 
-                entry = ReputationEntry(
-                    date=item.get('date', datetime.now().strftime("%Y-%m-%d")),
-                    source_url=item.get('url', source_url),
-                    source_type=source_type,
-                    reputation_score=score,
-                    summary=summary,
-                    scraped_at=scraped_at,
-                    raw_data=json.dumps(item)
-                )
-                entries.append(entry)
+            elif source_type in ['news', 'blog', 'forum', 'website']:
+                summary = item.get('summary', '')
+                reputation_score = item.get('sentiment_score', 0.0)
+                date = item.get('date', datetime.now().strftime("%m-%d-%Y"))
+                url = item.get('url', source_url)
+            
+            else:
+                print(f"[PARSER] Unknown source type: {source_type}")
+                continue
+            
+            # VALIDATE: Ensure date is in MM-DD-YYYY format
+            if not re.match(r'^\d{2}-\d{2}-\d{4}$', date):
+                print(f"[PARSER] ⚠️ Invalid date format '{date}', converting...")
+                date = _normalize_date_format(date)
+            
+            entry = ReputationEntry(
+                date=date,  # Guaranteed MM-DD-YYYY format
+                source_url=url,
+                source_type=source_type,
+                reputation_score=reputation_score,  # From LLM sentiment analysis
+                summary=summary,
+                scraped_at=scraped_at,
+                raw_data=json.dumps(item)
+            )
+            entries.append(entry)
+            print(f"[PARSER] ✅ Entry {idx}: score={reputation_score:.2f}, date={date}")
+        
+        except Exception as e:
+            print(f"[PARSER] ❌ Failed to create entry {idx}: {e}")
+            continue
     
-    except json.JSONDecodeError:
-        lines = raw_result.split('\n')
-        for line in lines[:5]:
-            if line.strip():
-                score = calculate_reputation_score(line)
-                entry = ReputationEntry(
-                    date=datetime.now().strftime("%Y-%m-%d"),
-                    source_url=source_url,
-                    source_type=source_type,
-                    reputation_score=score,
-                    summary=line[:200],
-                    scraped_at=scraped_at,
-                    raw_data=line
-                )
-                entries.append(entry)
-    
+    print(f"[PARSER] Successfully created {len(entries)} entries")
     return entries
 
 

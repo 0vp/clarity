@@ -157,7 +157,7 @@ Poll this endpoint to check the status and get results of a search.
   "query": "Nike",
   "results": [
     {
-      "date": "2025-11-16",
+      "date": "11-16-2025",
       "source_url": "https://trustpilot.com/review/nike",
       "source_type": "trustpilot",
       "reputation_score": 0.85,
@@ -259,7 +259,7 @@ Get reputation data for a specific brand with optional date filtering.
   "brand": "Nike",
   "data": [
     {
-      "date": "2025-11-16",
+      "date": "11-16-2025",
       "source_url": "https://trustpilot.com/review/nike",
       "source_type": "trustpilot",
       "reputation_score": 0.8,
@@ -304,7 +304,7 @@ Get the most recent reputation entries for a brand.
   "brand": "Nike",
   "data": [
     {
-      "date": "2025-11-16",
+      "date": "11-16-2025",
       "source_url": "https://yelp.com/biz/nike-store",
       "source_type": "yelp",
       "reputation_score": 0.9,
@@ -492,7 +492,7 @@ Manually save reputation data entries for a brand.
 {
   "entries": [
     {
-      "date": "2025-11-16",
+      "date": "11-16-2025",
       "source_url": "https://trustpilot.com/review/nike",
       "source_type": "trustpilot",
       "reputation_score": 0.8,
@@ -518,7 +518,7 @@ curl -X POST http://localhost:8000/api/brands/Nike/save \
   -H "Content-Type: application/json" \
   -d '{
     "entries": [{
-      "date": "2025-11-16",
+      "date": "11-16-2025",
       "source_url": "https://example.com",
       "source_type": "trustpilot",
       "reputation_score": 0.8,
@@ -555,7 +555,7 @@ Process completed scraping results from Browser.cash and automatically save to d
   "count": 1,
   "entries": [
     {
-      "date": "2025-11-15",
+      "date": "11-15-2025",
       "source_url": "https://trustpilot.com/review/nike",
       "source_type": "trustpilot",
       "reputation_score": 0.9,

@@ -137,7 +137,7 @@ def get_search_status(search_id: str):
             if answer:
                 completed_sources.append(source)
                 source_url = f"https://{source}.com"
-                entries = parse_scrape_result(answer, source, source_url)
+                entries = parse_scrape_result(answer, source, source_url, search["query"])
                 
                 for entry in entries:
                     all_results.append(entry.to_dict())

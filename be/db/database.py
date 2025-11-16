@@ -17,15 +17,17 @@ def _ensure_brand_dir(brand_name: str) -> Path:
     return brand_dir
 
 
-def _get_data_file_path(brand_name: str, date: str) -> Path:
-    """Get path to data file for a specific brand and date."""
+def _get_data_file_path(brand_name: str, date: str, epoch_time: int = None) -> Path:
+    """Get path to data file for a specific brand, date, and epoch time."""
     brand_dir = _ensure_brand_dir(brand_name)
+    if epoch_time:
+        return brand_dir / f"day_{date}_{epoch_time}_data.json"
     return brand_dir / f"day_{date}_data.json"
 
 
 def save_brand_data(brand_name: str, entries: List[ReputationEntry]) -> bool:
     """
-    Save brand reputation data for a specific date.
+    Save brand reputation data for a specific date with epoch timestamp.
     
     Args:
         brand_name: Name of the brand
@@ -37,41 +39,51 @@ def save_brand_data(brand_name: str, entries: List[ReputationEntry]) -> bool:
     if not entries:
         return False
     
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    file_path = _get_data_file_path(brand_name, date_str)
+    now = datetime.now()
+    date_str = now.strftime("%Y-%m-%d")
+    epoch_time = int(now.timestamp())
     
-    existing_data = []
-    if file_path.exists():
-        with open(file_path, 'r') as f:
-            existing_data = json.load(f)
+    # Use epoch time in filename to avoid overwriting within the same day
+    file_path = _get_data_file_path(brand_name, date_str, epoch_time)
     
     new_entries = [entry.to_dict() for entry in entries]
-    existing_data.extend(new_entries)
     
+    # Create new file with epoch time (no more appending to existing)
     with open(file_path, 'w') as f:
-        json.dump(existing_data, f, indent=2)
+        json.dump(new_entries, f, indent=2)
+    
+    print(f"[DB] Saved {len(new_entries)} entries to {file_path.name}")
     
     return True
 
 
 def get_brand_data(brand_name: str, date: str) -> List[Dict[str, Any]]:
     """
-    Get brand reputation data for a specific date.
+    Get brand reputation data for a specific date (all files for that day).
     
     Args:
         brand_name: Name of the brand
         date: Date in YYYY-MM-DD format
     
     Returns:
-        List of reputation entries
+        List of reputation entries from all files for that date
     """
-    file_path = _get_data_file_path(brand_name, date)
+    brand_dir = BRANDS_DIR / brand_name
     
-    if not file_path.exists():
+    if not brand_dir.exists():
         return []
     
-    with open(file_path, 'r') as f:
-        return json.load(f)
+    # Find all files for this date (with any epoch time)
+    pattern = f"day_{date}_*_data.json"
+    data_files = brand_dir.glob(pattern)
+    
+    all_data = []
+    for file_path in data_files:
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+            all_data.extend(data)
+    
+    return all_data
 
 
 def get_brand_data_range(

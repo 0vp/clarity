@@ -1,89 +1,93 @@
 PROMPTS = {
     "trustpilot": """
 Go to Trustpilot and search for "{brand_name}". 
-Find the most recent reviews (at least 5 reviews if available).
-For each review, extract:
-1. The review text
-2. The star rating
-3. The date of the review
-4. The reviewer name (if available)
+Find the most recent 5-10 reviews.
+Extract all the information you can see from each review including:
+- The full review text
+- Star rating (1-5 stars)
+- Date of the review
+- Reviewer name
+- Any other relevant details
 
-Format your answer as a JSON array with each review containing: review_text, rating, date, reviewer.
+Provide all the information you find in a clear format.
 """,
     
     "yelp": """
-Go to Yelp and search for "{brand_name}".
-Find the business page and extract the most recent reviews (at least 5 reviews if available).
-For each review, extract:
-1. The review text
-2. The star rating
-3. The date of the review
+Go to Yelp, search for "{brand_name}", and find their business page.
+Extract the most recent 5-10 reviews with all available information:
+- The full review text
+- Star rating (1-5 stars)
+- Review date
+- Reviewer name
+- Any other details you can find
 
-Format your answer as a JSON array with each review containing: review_text, rating, date.
+Provide all the information you extract.
 """,
     
     "google_reviews": """
 Search Google for "{brand_name} reviews" and find their Google Business reviews.
-Extract the most recent reviews (at least 5 reviews if available).
-For each review, extract:
-1. The review text
-2. The star rating
-3. The date of the review
+Extract the most recent 5-10 reviews with all available information:
+- The full review text
+- Star rating
+- Review date
+- Reviewer name if available
+- Any other details
 
-Format your answer as a JSON array with each review containing: review_text, rating, date.
+Provide all the review information you find.
 """,
     
     "news": """
 Search Google News for recent news articles about "{brand_name}" from the last 7 days.
-Find at least 3 news articles if available.
-For each article, extract:
-1. The article title
-2. A brief summary of the article (1-2 sentences)
-3. The publication date
-4. The source/publication name
-5. The article URL
+Find at least 3-5 news articles if available.
+For each article, extract all available information:
+- Article title
+- Brief description or summary
+- Publication date
+- Source/publication name
+- Article URL if visible
 
-Format your answer as a JSON array with each article containing: title, summary, date, source, url.
+Provide all the article information you find.
 """,
     
     "blog": """
 Search for recent blog posts about "{brand_name}" from the last 30 days.
-Use Google search with query: "{brand_name} blog post" and filter for recent results.
-Find at least 3 blog posts if available.
+Use Google search with query: "{brand_name} blog" or "{brand_name} blog post".
+Find at least 3-5 blog posts if available.
 For each blog post, extract:
-1. The blog post title
-2. A brief summary (1-2 sentences)
-3. The publication date
-4. The blog URL
+- Blog post title
+- Brief description or excerpt
+- Publication date
+- Blog URL if available
+- Author or blog name
 
-Format your answer as a JSON array with each post containing: title, summary, date, url.
+Provide all the blog post information you find.
 """,
     
     "forum": """
 Search Reddit and other forums for discussions about "{brand_name}" from the last 30 days.
-Use Google search with query: "{brand_name} site:reddit.com OR site:forum".
-Find at least 3 discussions if available.
+Use Google search or go directly to Reddit to search for "{brand_name}".
+Find at least 3-5 discussions if available.
 For each discussion, extract:
-1. The discussion title
-2. Key points from the discussion (1-2 sentences)
-3. The post date
-4. The forum/source
-5. The discussion URL
+- Discussion title
+- Key points or summary of what people are saying
+- Post date
+- Forum name (Reddit, etc.)
+- Discussion URL if available
 
-Format your answer as a JSON array with each discussion containing: title, summary, date, source, url.
+Provide all the discussion information you find.
 """,
     
     "website": """
-Go to the official website of "{brand_name}" (search for it first if URL not provided: {website_url}).
-Look for any recent announcements, press releases, or company news.
-Extract at least 3 recent items if available.
+Go to the official website of "{brand_name}" (try: {website_url} or search for it).
+Look for recent announcements, press releases, blog posts, or company news.
+Find at least 3-5 recent items if available.
 For each item, extract:
-1. The title/headline
-2. A brief summary (1-2 sentences)
-3. The publication date
-4. The URL of the specific page
+- Title or headline
+- Brief description or summary
+- Publication date
+- URL of the specific page
 
-Format your answer as a JSON array with each item containing: title, summary, date, url.
+Provide all the information you find from the website.
 """
 }
 

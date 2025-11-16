@@ -7,12 +7,12 @@ from typing import Optional, Dict, Any
 class ReputationEntry:
     """Data model for a brand reputation entry."""
     
-    date: str
+    date: str  # Date when content was posted/published (MM-DD-YYYY format), NOT scraping date
     source_url: str
     source_type: str
     reputation_score: float
     summary: str
-    scraped_at: str
+    scraped_at: str  # ISO 8601 timestamp of when we scraped this data
     raw_data: Optional[str] = None
     
     def __post_init__(self):

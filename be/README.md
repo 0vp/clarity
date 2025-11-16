@@ -158,11 +158,18 @@ app.run(debug=False, host="0.0.0.0", port=8000)
 
 ## Data Storage
 
-Brand data is stored in `/brands/{brand_name}/day_{YYYY-MM-DD}_data.json`
+Brand data is stored in `/brands/{brand_name}/day_{YYYY-MM-DD}_{epoch_time}_data.json`
+
+**File Naming:**
+- Each scraping session creates a unique file with epoch timestamp
+- Example: `day_2025-11-16_1731801234_data.json`
+- No overwriting - all scraping sessions are preserved
 
 Each entry includes:
-- Date and source information
-- Reputation score (-1.0 to 1.0)
-- Summary (1-2 sentences)
-- Raw data from source
-- Scraped timestamp
+- **date**: When content was posted/published (MM-DD-YYYY format) - NOT scraping date
+- **source_url**: URL of the source
+- **source_type**: Type of source (trustpilot, yelp, google_reviews, news, blog, forum, website)
+- **reputation_score**: AI sentiment score (-1.0 to 1.0)
+- **summary**: AI-generated 1-2 sentence summary
+- **scraped_at**: ISO timestamp of when we scraped this data
+- **raw_data**: Original data from source

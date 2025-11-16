@@ -210,7 +210,7 @@ def save_brand_reputation_data(brand_name: str):
         {
             "entries": [
                 {
-                    "date": "2025-11-16",
+                    "date": "11-16-2025",
                     "source_url": "https://example.com",
                     "source_type": "trustpilot",
                     "reputation_score": 0.8,
