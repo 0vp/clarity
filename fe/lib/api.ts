@@ -9,12 +9,18 @@ export interface Brand {
 
 export interface BrandStats {
   total_entries: number;
-  date_range: {
+  average_score: number;
+  by_source: Record<string, {
+    count: number;
+    avg_score: number;
+  }>;
+  latest_date?: string;
+  date_range?: {
     earliest: string;
     latest: string;
   };
-  sources: Record<string, number>;
-  avg_reputation_score: number;
+  sources?: Record<string, number>;
+  avg_reputation_score?: number;
   latest_entry?: {
     date: string;
     source_type: string;
@@ -102,6 +108,20 @@ export async function fetchBrandData(
     console.error(`Error fetching data for ${brandName}:`, error);
     throw error;
   }
+}
+
+export async function fetchBrandDataRange(
+  brandName: string,
+  days: number = 30
+): Promise<BrandData[]> {
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  return fetchBrandData(brandName, {
+    startDate: startDate.toISOString().split('T')[0],
+    endDate: endDate.toISOString().split('T')[0],
+  });
 }
 
 export async function fetchBrandLatestData(
