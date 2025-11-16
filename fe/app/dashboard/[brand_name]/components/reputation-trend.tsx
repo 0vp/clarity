@@ -23,7 +23,7 @@ interface ReputationTrendProps {
 const chartConfig = {
   score: {
     label: 'Reputation Score',
-    color: 'hsl(var(--chart-1))',
+    color: '#3B82F6',
   },
 } satisfies ChartConfig
 
@@ -49,12 +49,12 @@ export function ReputationTrend({ data }: ReputationTrendProps) {
               <linearGradient id="fillScore" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-score)"
+                  stopColor="#3B82F6"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-score)"
+                  stopColor="#3B82F6"
                   stopOpacity={0.1}
                 />
               </linearGradient>
@@ -86,7 +86,7 @@ export function ReputationTrend({ data }: ReputationTrendProps) {
               type="monotone"
               fill="url(#fillScore)"
               fillOpacity={0.4}
-              stroke="var(--color-score)"
+              stroke="#3B82F6"
               strokeWidth={2}
             />
           </AreaChart>
