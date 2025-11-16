@@ -111,11 +111,18 @@ def get_brand_statistics(brand_name: str):
     """
     Get statistics for a brand.
     
+    Query params:
+        - start_date: Start date (YYYY-MM-DD) (optional)
+        - end_date: End date (YYYY-MM-DD) (optional)
+    
     Returns:
         JSON response with brand statistics
     """
     try:
-        stats = get_brand_stats(brand_name)
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        stats = get_brand_stats(brand_name, start_date, end_date)
         
         return jsonify({
             "brand": brand_name,

@@ -100,21 +100,33 @@ def get_brand_data_range(
         end_date: End date in YYYY-MM-DD format
     
     Returns:
-        List of reputation entries
+        List of reputation entries within the date range
     """
+    brand_dir = BRANDS_DIR / brand_name
+    
+    if not brand_dir.exists():
+        return []
+    
+    # Parse date range
     start = datetime.strptime(start_date, "%Y-%m-%d")
     end = datetime.strptime(end_date, "%Y-%m-%d")
     
+    # Load all data files for this brand
     all_data = []
-    current = start
+    data_files = list(brand_dir.glob("day_*_data.json"))
     
-    while current <= end:
-        date_str = current.strftime("%Y-%m-%d")
-        data = get_brand_data(brand_name, date_str)
-        all_data.extend(data)
-        current += timedelta(days=1)
+    for file_path in data_files:
+        with open(file_path, 'r') as f:
+            all_data.extend(json.load(f))
     
-    return all_data
+    # Filter by entry date (entries have date in MM-DD-YYYY format)
+    filtered_data = []
+    for entry in all_data:
+        entry_date = datetime.strptime(entry['date'], "%m-%d-%Y")
+        if start <= entry_date <= end:
+            filtered_data.append(entry)
+    
+    return filtered_data
 
 
 def get_brand_last_updated(brand_name: str) -> Optional[str]:
@@ -216,12 +228,14 @@ def get_latest_data(brand_name: str, limit: int = 10) -> List[Dict[str, Any]]:
     return all_data[:limit]
 
 
-def get_brand_stats(brand_name: str) -> Dict[str, Any]:
+def get_brand_stats(brand_name: str, start_date: Optional[str] = None, end_date: Optional[str] = None) -> Dict[str, Any]:
     """
     Get statistics for a brand.
     
     Args:
         brand_name: Name of the brand
+        start_date: Start date in YYYY-MM-DD format (optional)
+        end_date: End date in YYYY-MM-DD format (optional)
     
     Returns:
         Dictionary with statistics
@@ -242,6 +256,19 @@ def get_brand_stats(brand_name: str) -> Dict[str, Any]:
     for file_path in data_files:
         with open(file_path, 'r') as f:
             all_entries.extend(json.load(f))
+    
+    # Filter by date range if provided
+    if start_date or end_date:
+        filtered_entries = []
+        start = datetime.strptime(start_date, "%Y-%m-%d") if start_date else datetime.min
+        end = datetime.strptime(end_date, "%Y-%m-%d") if end_date else datetime.max
+        
+        for entry in all_entries:
+            entry_date = datetime.strptime(entry['date'], "%m-%d-%Y")
+            if start <= entry_date <= end:
+                filtered_entries.append(entry)
+        
+        all_entries = filtered_entries
     
     if not all_entries:
         return {

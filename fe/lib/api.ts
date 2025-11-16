@@ -58,9 +58,18 @@ export async function fetchBrands(): Promise<Brand[]> {
   }
 }
 
-export async function fetchBrandStats(brandName: string): Promise<BrandStats> {
+export async function fetchBrandStats(
+  brandName: string,
+  startDate?: string,
+  endDate?: string
+): Promise<BrandStats> {
   try {
-    const response = await fetch(`${API_BASE_URL}/brands/${encodeURIComponent(brandName)}/stats`);
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    
+    const url = `${API_BASE_URL}/brands/${encodeURIComponent(brandName)}/stats${params.toString() ? '?' + params.toString() : ''}`;
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch brand stats: ${response.statusText}`);

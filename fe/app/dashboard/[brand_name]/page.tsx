@@ -59,8 +59,15 @@ export default function BrandPage() {
 
         const days = timeRange === 'all' ? 365 : parseInt(timeRange)
         
+        const endDate = new Date()
+        const startDate = new Date()
+        startDate.setDate(startDate.getDate() - days)
+        
+        const startDateStr = startDate.toISOString().split('T')[0]
+        const endDateStr = endDate.toISOString().split('T')[0]
+        
         const [statsData, historicalDataResult, recentData] = await Promise.all([
-          fetchBrandStats(brandName),
+          fetchBrandStats(brandName, startDateStr, endDateStr),
           fetchBrandDataRange(brandName, days),
           fetchBrandLatestData(brandName, 10)
         ])
