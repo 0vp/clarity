@@ -22,8 +22,8 @@ export default function Home() {
           <Image
             src="/logo.png"
             alt="Claro"
-            width={150}
-            height={50}
+            width={75}
+            height={25}
             priority
             style={{ objectFit: 'contain', objectPosition: '-3px center' }}
           />

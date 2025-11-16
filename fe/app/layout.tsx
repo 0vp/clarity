@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={notoSerif.variable}>
+    <html lang="en" className={`${notoSerif.variable} dark`}>
       <body>{children}</body>
     </html>
   )
