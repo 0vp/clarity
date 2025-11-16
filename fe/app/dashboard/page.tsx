@@ -9,7 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { fetchBrandsWithStats, type Brand, type BrandStats } from '@/lib/api'
-import { Search, Plus, TrendingUp, Clock } from 'lucide-react'
+import { Search, Plus, TrendingUp, Clock, RefreshCw, AlertCircle } from 'lucide-react'
+
+export const dynamic = 'force-dynamic'
 
 type BrandWithStats = Brand & { stats?: BrandStats }
 
@@ -19,19 +21,25 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function loadBrands() {
-      try {
-        setLoading(true)
-        const data = await fetchBrandsWithStats()
-        setBrands(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load brands')
-      } finally {
-        setLoading(false)
-      }
+  const loadBrands = async () => {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return
+    
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await fetchBrandsWithStats()
+      setBrands(data)
+    } catch (err) {
+      console.error('Error loading brands:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load brands'
+      setError(errorMessage)
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     loadBrands()
   }, [])
 
@@ -132,8 +140,30 @@ export default function Dashboard() {
         {/* Error State */}
         {error && (
           <Card className="border-destructive">
-            <CardContent className="pt-6">
-              <p className="text-destructive">Error: {error}</p>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertCircle className="h-5 w-5" />
+                Failed to Load Brands
+              </CardTitle>
+              <CardDescription>
+                {error}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  <p className="mb-2">Possible issues:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>Backend API is not running (should be at http://127.0.0.1:8000)</li>
+                    <li>CORS configuration issue</li>
+                    <li>Network connectivity problem</li>
+                  </ul>
+                </div>
+                <Button onClick={loadBrands} variant="outline">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Retry
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
