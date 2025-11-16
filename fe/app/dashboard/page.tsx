@@ -51,13 +51,33 @@ export default function Dashboard() {
     if (!dateString) return 'Never'
     const date = new Date(dateString)
     const now = new Date()
-    const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+    const diffInMs = now.getTime() - date.getTime()
+    const diffInSeconds = Math.floor(diffInMs / 1000)
+    const diffInMinutes = Math.floor(diffInSeconds / 60)
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    const diffInDays = Math.floor(diffInHours / 24)
     
-    if (diffInDays === 0) return 'Today'
-    if (diffInDays === 1) return 'Yesterday'
-    if (diffInDays < 7) return `${diffInDays} days ago`
-    if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`
+    // Less than 1 minute
+    if (diffInSeconds < 60) {
+      return diffInSeconds <= 1 ? '1 second ago' : `${diffInSeconds} seconds ago`
+    }
     
+    // Less than 1 hour
+    if (diffInMinutes < 60) {
+      return diffInMinutes === 1 ? '1 minute ago' : `${diffInMinutes} minutes ago`
+    }
+    
+    // Less than 24 hours
+    if (diffInHours < 24) {
+      return diffInHours === 1 ? '1 hour ago' : `${diffInHours} hours ago`
+    }
+    
+    // Less than 7 days
+    if (diffInDays < 7) {
+      return diffInDays === 1 ? '1 day ago' : `${diffInDays} days ago`
+    }
+    
+    // More than 7 days - show the actual date
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 

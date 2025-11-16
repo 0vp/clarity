@@ -117,17 +117,69 @@ def get_brand_data_range(
     return all_data
 
 
-def list_brands() -> List[str]:
+def get_brand_last_updated(brand_name: str) -> Optional[str]:
     """
-    List all tracked brands.
+    Get the last updated datetime for a brand by checking filenames.
+    
+    Args:
+        brand_name: Name of the brand
     
     Returns:
-        List of brand names
+        ISO formatted datetime string of the most recent file, or None
+    """
+    brand_dir = BRANDS_DIR / brand_name
+    
+    if not brand_dir.exists():
+        return None
+    
+    # Get all data files
+    data_files = list(brand_dir.glob("day_*_data.json"))
+    
+    if not data_files:
+        return None
+    
+    # Extract epoch timestamps from filenames and find the latest
+    latest_epoch = 0
+    for file_path in data_files:
+        # Filename format: day_2025-11-15_1763263869_data.json
+        parts = file_path.stem.split('_')
+        if len(parts) >= 3:
+            try:
+                epoch = int(parts[2])
+                if epoch > latest_epoch:
+                    latest_epoch = epoch
+            except (ValueError, IndexError):
+                continue
+    
+    if latest_epoch == 0:
+        return None
+    
+    # Convert epoch to ISO format datetime string
+    dt = datetime.fromtimestamp(latest_epoch)
+    return dt.isoformat()
+
+
+def list_brands() -> List[Dict[str, Any]]:
+    """
+    List all tracked brands with last updated datetime.
+    
+    Returns:
+        List of dicts with brand name and last_updated timestamp
     """
     if not BRANDS_DIR.exists():
         return []
     
-    return [d.name for d in BRANDS_DIR.iterdir() if d.is_dir()]
+    brands = []
+    for brand_dir in BRANDS_DIR.iterdir():
+        if brand_dir.is_dir():
+            brand_name = brand_dir.name
+            last_updated = get_brand_last_updated(brand_name)
+            brands.append({
+                "name": brand_name,
+                "last_updated": last_updated
+            })
+    
+    return brands
 
 
 def get_latest_data(brand_name: str, limit: int = 10) -> List[Dict[str, Any]]:

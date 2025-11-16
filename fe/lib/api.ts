@@ -2,6 +2,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/a
 
 export interface Brand {
   name: string;
+  last_updated?: string;
   status?: 'active' | 'inactive';
   lastUpdated?: string;
 }
@@ -40,7 +41,11 @@ export async function fetchBrands(): Promise<Brand[]> {
     }
     
     const data = await response.json();
-    return data.brands.map((name: string) => ({ name }));
+    return data.brands.map((brand: any) => ({
+      name: brand.name,
+      last_updated: brand.last_updated,
+      lastUpdated: brand.last_updated
+    }));
   } catch (error) {
     console.error('Error fetching brands:', error);
     throw error;
@@ -129,7 +134,8 @@ export async function fetchBrandsWithStats(): Promise<Array<Brand & { stats?: Br
         try {
           const stats = await fetchBrandStats(brand.name);
           
-          const lastUpdated = stats.latest_entry?.date || stats.date_range?.latest;
+          // Use last_updated from brands endpoint first, fallback to stats
+          const lastUpdated = brand.last_updated || stats.latest_entry?.date || stats.date_range?.latest;
           const isRecent = lastUpdated 
             ? new Date(lastUpdated) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
             : false;
@@ -141,9 +147,16 @@ export async function fetchBrandsWithStats(): Promise<Array<Brand & { stats?: Br
             status: isRecent ? 'active' as const : 'inactive' as const,
           };
         } catch (error) {
+          // Even if stats fail, we have last_updated from brands endpoint
+          const lastUpdated = brand.last_updated;
+          const isRecent = lastUpdated 
+            ? new Date(lastUpdated) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+            : false;
+          
           return {
             ...brand,
-            status: 'inactive' as const,
+            lastUpdated,
+            status: isRecent ? 'active' as const : 'inactive' as const,
           };
         }
       })
