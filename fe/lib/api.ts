@@ -204,3 +204,79 @@ export async function fetchBrandsWithStats(): Promise<Array<Brand & { stats?: Br
     throw error;
   }
 }
+
+export interface SearchInitResponse {
+  search_id: string;
+  query: string;
+  task_ids: Record<string, { task_id: string; source: string }>;
+  status: string;
+  status_url: string;
+  created_at: string;
+}
+
+export interface SourceProgress {
+  [key: string]: string;
+}
+
+export interface SearchStatusResponse {
+  search_id: string;
+  status: 'processing' | 'completed' | 'failed';
+  query: string;
+  progress?: {
+    completed: number;
+    total: number;
+    sources: SourceProgress;
+  };
+  results?: BrandData[];
+  stats?: {
+    total_results: number;
+    average_score: number;
+    by_source: Record<string, { count: number; avg_score: number }>;
+  };
+  saved_to_db?: boolean;
+  error?: string;
+  created_at: string;
+}
+
+export async function initiateSearch(
+  brandName: string,
+  sources: string[],
+  websiteUrl?: string
+): Promise<SearchInitResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL.replace('/api', '')}/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: brandName,
+        sources,
+        website_url: websiteUrl || '',
+        auto_save: true
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to initiate search: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error initiating search:', error);
+    throw error;
+  }
+}
+
+export async function getSearchStatus(searchId: string): Promise<SearchStatusResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL.replace('/api', '')}/search/${searchId}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to get search status: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting search status:', error);
+    throw error;
+  }
+}

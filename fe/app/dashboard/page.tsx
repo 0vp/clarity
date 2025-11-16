@@ -3,23 +3,48 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { fetchBrandsWithStats, type Brand, type BrandStats } from '@/lib/api'
-import { Search, Plus, TrendingUp, Clock, RefreshCw, AlertCircle } from 'lucide-react'
+import { fetchBrandsWithStats, type Brand, type BrandStats, initiateSearch, getSearchStatus } from '@/lib/api'
+import { Search, Plus, TrendingUp, Clock, RefreshCw, AlertCircle, Loader2, Check, XCircle } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
 type BrandWithStats = Brand & { stats?: BrandStats }
 
+interface InProgressScrape {
+  searchId: string
+  sources: string[]
+  status: 'scraping' | 'completed' | 'failed'
+  scrapingStatus: Record<string, string>
+  progress: { completed: number; total: number }
+  startedAt: number
+  error?: string
+}
+
+const AVAILABLE_SOURCES = ['trustpilot', 'yelp', 'google_reviews', 'news', 'blog', 'forum', 'website']
+const SCRAPING_STORAGE_KEY = 'clarity_scraping'
+
 export default function Dashboard() {
+  const router = useRouter()
   const [brands, setBrands] = useState<BrandWithStats[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Add brand form state
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [brandName, setBrandName] = useState('')
+  const [website, setWebsite] = useState('')
+  const [selectedSources, setSelectedSources] = useState<string[]>(AVAILABLE_SOURCES.filter(s => s !== 'website'))
+  const [formError, setFormError] = useState<string | null>(null)
+  
+  // In-progress scraping state
+  const [inProgressScrapes, setInProgressScrapes] = useState<Record<string, InProgressScrape>>({})
 
   const loadBrands = async () => {
     // Only run in browser environment
@@ -39,12 +64,131 @@ export default function Dashboard() {
     }
   }
 
+  // Load in-progress scrapes from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    try {
+      const stored = localStorage.getItem(SCRAPING_STORAGE_KEY)
+      if (stored) {
+        setInProgressScrapes(JSON.parse(stored))
+      }
+    } catch (err) {
+      console.error('Error loading in-progress scrapes:', err)
+    }
+  }, [])
+
+  // Save in-progress scrapes to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    try {
+      localStorage.setItem(SCRAPING_STORAGE_KEY, JSON.stringify(inProgressScrapes))
+    } catch (err) {
+      console.error('Error saving in-progress scrapes:', err)
+    }
+  }, [inProgressScrapes])
+
+  // Poll for scraping status of each in-progress scrape
+  useEffect(() => {
+    const inProgressBrands = Object.entries(inProgressScrapes).filter(
+      ([_, scrape]) => scrape.status === 'scraping'
+    )
+
+    if (inProgressBrands.length === 0) return
+
+    const interval = setInterval(async () => {
+      for (const [brandName, scrape] of inProgressBrands) {
+        try {
+          const status = await getSearchStatus(scrape.searchId)
+
+          setInProgressScrapes(prev => {
+            const updated = { ...prev }
+
+            if (status.progress?.sources) {
+              updated[brandName] = {
+                ...updated[brandName],
+                scrapingStatus: status.progress.sources,
+                progress: {
+                  completed: status.progress.completed,
+                  total: status.progress.total
+                }
+              }
+            }
+
+            if (status.status === 'completed') {
+              updated[brandName].status = 'completed'
+              // Reload brands to show completed scrape
+              loadBrands()
+            } else if (status.status === 'failed') {
+              updated[brandName].status = 'failed'
+              updated[brandName].error = status.error || 'Scraping failed'
+            }
+
+            return updated
+          })
+        } catch (err) {
+          console.error(`Error polling for ${brandName}:`, err)
+        }
+      }
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [inProgressScrapes])
+
+  const handleStartScraping = async () => {
+    if (!brandName.trim()) {
+      setFormError('Brand name is required')
+      return
+    }
+    
+    try {
+      setFormError(null)
+      
+      // Initialize status for all selected sources
+      const initialStatus: Record<string, string> = {}
+      selectedSources.forEach(source => {
+        initialStatus[source] = 'pending'
+      })
+      
+      const response = await initiateSearch(brandName, selectedSources, website || undefined)
+      
+      // Add to in-progress scrapes
+      setInProgressScrapes(prev => ({
+        ...prev,
+        [brandName]: {
+          searchId: response.search_id,
+          sources: selectedSources,
+          status: 'scraping',
+          scrapingStatus: initialStatus,
+          progress: { completed: 0, total: selectedSources.length },
+          startedAt: Date.now()
+        }
+      }))
+      
+      // Close dialog
+      setShowAddDialog(false)
+      
+      // Reset form
+      setBrandName('')
+      setWebsite('')
+      setSelectedSources(AVAILABLE_SOURCES.filter(s => s !== 'website'))
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Failed to start scraping')
+      console.error('Error starting scraping:', err)
+    }
+  }
+
   useEffect(() => {
     loadBrands()
   }, [])
 
   const filteredBrands = brands.filter(brand =>
     brand.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const scrapingBrands = Object.entries(inProgressScrapes).filter(([_, scrape]) =>
+    scrape.status === 'scraping'
   )
 
   const formatDate = (dateString?: string) => {
@@ -124,24 +268,75 @@ export default function Dashboard() {
               className="pl-10"
             />
           </div>
-          <Dialog>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Brand
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Add New Brand</DialogTitle>
                 <DialogDescription>
-                  Add a new brand to track its reputation across different platforms.
+                  Enter brand details and select sources to scrape.
                 </DialogDescription>
               </DialogHeader>
-              <div className="py-4">
-                <p className="text-sm text-muted-foreground">
-                  Feature coming soon...
-                </p>
+              
+              <div className="space-y-4 py-4">
+                <div>
+                  <label className="text-sm font-medium">Brand Name *</label>
+                  <Input
+                    placeholder="Nike"
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Website (Optional)</label>
+                  <Input
+                    placeholder="https://example.com"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Sources to Scrape</label>
+                  <div className="space-y-2">
+                    {AVAILABLE_SOURCES.map(source => (
+                      <label key={source} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedSources.includes(source)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedSources([...selectedSources, source])
+                            } else {
+                              setSelectedSources(selectedSources.filter(s => s !== source))
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        <span className="text-sm capitalize">{source.replace(/_/g, ' ')}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                {formError && (
+                  <div className="flex gap-2 items-start text-sm text-destructive bg-destructive/10 p-3 rounded">
+                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <span>{formError}</span>
+                  </div>
+                )}
+                
+                <Button onClick={handleStartScraping} className="w-full">
+                  Start Scraping
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -191,7 +386,7 @@ export default function Dashboard() {
         {/* Brand Grid */}
         {!loading && !error && (
           <>
-            {filteredBrands.length === 0 ? (
+            {filteredBrands.length === 0 && scrapingBrands.length === 0 ? (
               <Card>
                 <CardContent className="pt-6">
                   <p className="text-center text-muted-foreground">
@@ -201,6 +396,51 @@ export default function Dashboard() {
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {/* Scraping Brands Cards */}
+                {scrapingBrands.map(([scrapingBrandName, scrape]) => (
+                  <Card key={scrapingBrandName} className="border-primary/50 h-full">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-xl">{scrapingBrandName}</CardTitle>
+                        <Badge variant="outline" className="bg-primary/10">
+                          Scraping
+                        </Badge>
+                      </div>
+                      <CardDescription>
+                        {scrape.progress.completed} of {scrape.progress.total} sources complete
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          {scrape.sources.map(source => {
+                            const status = scrape.scrapingStatus[source]
+                            return (
+                              <div key={source} className="flex items-center gap-2 text-sm">
+                                {status === 'completed' ? (
+                                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                ) : status === 'failed' || status === 'error' ? (
+                                  <XCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                                ) : (
+                                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground flex-shrink-0" />
+                                )}
+                                <span className="capitalize text-muted-foreground">{source.replace(/_/g, ' ')}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                        {scrape.error && (
+                          <div className="flex gap-2 items-start text-xs text-destructive bg-destructive/10 p-2 rounded">
+                            <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                            <span>{scrape.error}</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+
+                {/* Regular Brand Cards */}
                 {filteredBrands.map((brand) => (
                   <Link key={brand.name} href={`/dashboard/${encodeURIComponent(brand.name)}`}>
                     <Card className="hover:border-primary transition-colors cursor-pointer h-full">

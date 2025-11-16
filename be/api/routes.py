@@ -159,7 +159,7 @@ def scrape_brand_data(brand_name: str):
         if not sources:
             return jsonify({"error": "At least one source must be specified"}), 400
         
-        valid_sources = ['trustpilot', 'yelp', 'google_reviews', 'news', 'blog', 'forum', 'website']
+        valid_sources = ['trustpilot', 'yelp', 'google_reviews', 'yahoo_news', 'blog', 'forum', 'website']
         invalid = [s for s in sources if s not in valid_sources]
         
         if invalid:
